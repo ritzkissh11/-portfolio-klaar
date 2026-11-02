@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klaar · Agentic goal setting prototype</title>
+<style>
+:root{
+  --blue:#3956f9; --blue-800:#1e309a; --blue-50:#eef1ff; --bubble:#dce1fe;
+  --text:#222222; --text-2:#4e4e4e; --meta:#727272; --disabled:#bdbdbd;
+  --border:#e7e7e7; --border-2:#dde2eb; --bg:#f5f7f9; --white:#fff;
+  --purple:#8a3ffc; --p50:#faf5ff; --p100:#f3e8ff;
+  --teal50:#f2fbf9; --green:#266f2a; --green-bg:#e6f4ea;
+  --m50:#fef2f3; --red:#c91820; --o50:#fff6ed; --o100:#ffebd5; --orange:#c25e00;
+  --nav:#1c1c1e;
+  --r-8:8px; --r-12:12px; --r-20:20px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", Inter, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);font-size:14px;line-height:20px;color:var(--text);background:#e9ebef;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- prototype navigator ---------- */
+.proto{position:fixed;top:0;left:0;right:0;height:48px;background:#26262b;color:#fff;display:flex;align-items:center;gap:12px;padding:0 16px;z-index:100;font-size:13px}
+.proto strong{font-weight:600;margin-right:4px}
+.proto select{background:#3a3a41;color:#fff;border:1px solid #4a4a52;border-radius:6px;padding:6px 8px;font:inherit;max-width:420px}
+.proto .pbtn{background:#3a3a41;color:#fff;border:1px solid #4a4a52;border-radius:6px;padding:5px 10px}
+.proto .pbtn:hover{background:#45454d}
+.proto .seg{display:flex;border:1px solid #4a4a52;border-radius:6px;overflow:hidden}
+.proto .seg button{background:transparent;border:0;color:#cfcfd4;padding:5px 10px}
+.proto .seg button.on{background:#5b5bd6;color:#fff}
+.proto .spacer{flex:1}
+.proto .cap{color:#b9b9c2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+
+/* ---------- stage ---------- */
+.stage{position:fixed;inset:48px 0 0 0;display:flex;align-items:center;justify-content:center;overflow:auto;padding:16px}
+.app{position:relative;width:1280px;height:720px;flex:none;background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 10px 40px rgba(20,20,40,.18);display:flex;transform-origin:center}
+
+/* left nav */
+.nav{width:160px;background:var(--nav);color:#e9e9ec;display:flex;flex-direction:column;padding:16px 10px;gap:4px;flex:none}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:22px;letter-spacing:-.5px;color:#fff;padding:0 4px 14px}
+.logo i{width:22px;height:22px;border-radius:50%;background:#fff;color:#1c1c1e;display:grid;place-items:center;font-style:normal;font-size:13px;font-weight:800}
+.qa{background:var(--blue);color:#fff;border:0;border-radius:20px;height:36px;font-weight:600;font-size:13px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:6px}
+.navi{display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:6px;font-size:13px;color:#d6d6db}
+.navi.on{background:#2a33a8;color:#fff}
+.navi svg{width:16px;height:16px;flex:none}
+.nav .me{margin-top:auto;background:#2b2b30;border-radius:8px;padding:6px 8px;display:flex;align-items:center;gap:8px;font-size:12px;color:#fff}
+
+/* main */
+.main{flex:1;position:relative;overflow:hidden;background:#fff}
+.hero{height:160px;background:linear-gradient(120deg,#5b3df5 0%,#6a3ff0 40%,#7b48ee 100%);padding:20px 40px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 40px,transparent 40px 80px)}
+.hero h1{margin:0;color:#fff;font-size:20px;line-height:28px;font-weight:600;position:relative;z-index:1}
+.search{position:relative;z-index:1;margin-top:14px;background:#fff;border-radius:6px;height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 14px;color:#9a9aa3}
+.askbtn{background:linear-gradient(90deg,#8a3ffc,#a855f7);color:#fff;border:0;border-radius:6px;height:36px;padding:0 14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.content{position:absolute;top:144px;left:40px;right:40px;bottom:0;display:grid;grid-template-columns:1fr 330px;gap:20px}
+.panelbox{background:#fff;border:1px solid var(--border);border-radius:var(--r-8);padding:12px 16px}
+.panelbox h3{margin:0 0 10px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.tasks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.task{border-radius:8px;padding:12px;min-height:130px;display:flex;flex-direction:column;justify-content:space-between;font-weight:600;font-size:13px}
+.task a{color:var(--blue);font-size:12px;font-weight:600;text-decoration:none}
+.t1{background:#f3ebff}.t2{background:#fff8e1}.t3{background:#e6f7fd}
+.recog{margin-top:12px;height:300px}
+.recog .post{background:var(--bg);border-radius:6px;padding:10px;color:#9a9aa3;margin-bottom:10px}
+.recog .img{height:160px;border-radius:6px;background:linear-gradient(180deg,#1d5fc7,#3b8be6)}
+.prof{display:flex;flex-direction:column;gap:8px}
+.prof .av{width:52px;height:52px;border-radius:50%;background:#c9b48f}
+
+/* ---------- Ask Klaar panel / modal ---------- */
+.scrim{position:absolute;inset:0;background:rgba(20,20,30,.35);opacity:0;pointer-events:none;transition:opacity .2s;z-index:15}
+.ak{z-index:20}
+.scrim.on{opacity:1;pointer-events:auto}
+.ak{position:absolute;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(20,20,60,.22);display:flex;flex-direction:column;overflow:hidden;transition:all .25s ease}
+.ak.panel{top:20px;right:20px;bottom:0;width:600px;border-radius:14px 14px 0 0}
+.ak.modal{top:20px;left:40px;right:40px;bottom:0;border-radius:14px 14px 0 0}
+.ak.hidden{transform:translateX(640px);opacity:0;pointer-events:none}
+.akhead{height:56px;display:flex;align-items:center;gap:16px;padding:0 20px;border-bottom:1px solid transparent;flex:none}
+.ak.modal .akhead{border-bottom-color:var(--border)}
+.akttl{display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;background:linear-gradient(90deg,#8a3ffc,#b25cf5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.akttl svg{color:#8a3ffc}
+.akctx{display:flex;align-items:center;gap:6px;color:var(--text-2);font-size:13px}
+.akctx b{color:var(--text);font-weight:600}
+.akctx .muted{color:var(--meta)}
+.akctx a{color:var(--blue);font-size:12px;text-decoration:none}
+.akicons{margin-left:auto;display:flex;gap:6px;align-items:center}
+.ib{width:32px;height:32px;border:0;background:transparent;border-radius:6px;display:grid;place-items:center;color:#444}
+.ib:hover{background:var(--bg)}
+.akbody{flex:1;display:flex;min-height:0}
+.side{width:240px;background:var(--bg);margin:12px 0 12px 12px;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;flex:none}
+.side .new{background:var(--blue);color:#fff;border:0;border-radius:6px;height:36px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+.side .lbl{font-size:13px;color:var(--text-2);font-weight:600;margin-top:6px}
+.side .srch{background:#fff;border:1px solid var(--border);border-radius:16px;height:30px;padding:0 10px;display:flex;align-items:center;gap:6px;color:#9a9aa3;font-size:12px}
+.conv{padding:8px 10px;border-radius:6px;font-size:13px}
+.conv small{display:block;color:var(--meta);font-size:11px}
+.conv.on{background:#e6e9fb}
+.side .del{margin-top:auto;color:var(--red);font-size:13px;border-top:1px solid var(--border);padding-top:10px}
+.chatcol{flex:1;display:flex;flex-direction:column;min-width:0}
+.chat{flex:1;overflow-y:auto;padding:16px 20px 8px;display:flex;flex-direction:column;gap:12px;background-image:radial-gradient(#ececf1 1px,transparent 1px);background-size:14px 14px}
+.chat > :first-child{margin-top:auto}
+.composer{margin:8px 12px 12px;border:1px solid var(--border);border-radius:12px;height:56px;display:flex;align-items:center;gap:8px;padding:0 8px 0 14px;flex:none;background:#fff}
+.composer input{flex:1;border:0;outline:0;font:inherit;color:var(--text)}
+.composer input::placeholder{color:#9a9aa3}
+.gen{background:linear-gradient(90deg,#b98cfb,#d3a6fb);color:#fff;border:0;border-radius:20px;height:38px;padding:0 16px;display:flex;align-items:center;gap:6px;font-weight:600}
+.gen.ready{background:linear-gradient(90deg,#8a3ffc,#a855f7)}
+
+/* messages */
+.urow{display:flex;justify-content:flex-end}
+.ubub{background:var(--bubble);border-radius:20px;padding:8px 14px;font-weight:500;max-width:80%}
+.amsg{display:flex;gap:8px;align-items:flex-start}
+.amsg svg{flex:none;margin-top:2px;color:#6a4be0}
+.out{padding-left:28px;display:flex;flex-direction:column;gap:12px}
+.stamp{text-align:center;color:var(--meta);font-size:12px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.ch{display:flex;align-items:center;gap:8px}
+.ch .t{flex:1;font-weight:600}
+.ch .t.lg{font-size:16px;line-height:24px}
+.chip{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:4px;font-size:12px;font-weight:600;background:#efefef;color:#4f4f4f;white-space:nowrap}
+.chip.info{background:var(--green-bg);color:var(--green)}
+.chip.done{background:var(--green-bg);color:var(--green)}
+.chip.warn{background:var(--o50);color:var(--orange)}
+.chip.risk{background:var(--m50);color:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.label{font-size:12px;color:var(--meta);font-weight:500}
+
+/* steps */
+.steps{display:flex;flex-direction:column;gap:10px}
+.step{display:flex;gap:12px;align-items:flex-start}
+.step .ic{width:20px;height:20px;flex:none}
+.step .tt{font-weight:500}
+.step .dd{font-size:12px;line-height:16px;color:var(--meta)}
+.step.pending .tt{color:var(--meta)}
+.step.active .dd{color:var(--blue)}
+.step.enter{animation:pop .35s ease both}
+.step.enter:nth-child(2){animation-delay:.25s}.step.enter:nth-child(3){animation-delay:.5s}.step.enter:nth-child(4){animation-delay:.75s}
+@keyframes pop{from{opacity:.2;transform:translateY(4px)}to{opacity:1;transform:none}}
+.spin{animation:rot 1s linear infinite;transform-origin:center}
+@keyframes rot{to{transform:rotate(360deg)}}
+.bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--blue);border-radius:3px;transition:width .5s ease}
+
+/* buttons */
+.btn{height:36px;border-radius:6px;padding:0 14px;font-weight:600;font-size:14px;border:1px solid transparent;white-space:nowrap}
+.btn.pri{background:var(--blue);color:#fff}
+.btn.pri:hover{background:#2c47e6}
+.btn.sec{background:#fff;color:var(--blue);border-color:var(--blue)}
+.btn.sec:hover{background:var(--blue-50)}
+.btn.ter{background:transparent;color:var(--blue)}
+.btn.ter:hover{background:var(--blue-50)}
+.btn.dng{background:transparent;color:var(--red)}
+.btn.dngp{background:var(--red);color:#fff}
+.btn.sm{height:28px;padding:0 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.actions{background:var(--bg);border-radius:8px;padding:8px 8px 8px 16px;display:flex;align-items:center;gap:8px}
+.actions .note{flex:1;font-size:12px;line-height:16px;color:var(--text-2)}
+.actions.stack{flex-direction:column;align-items:stretch;padding:12px}
+.actions.stack .row{display:flex;justify-content:flex-end;gap:8px}
+
+/* checks */
+.checks{display:flex;flex-wrap:wrap;gap:8px 16px}
+.check{display:flex;gap:8px;align-items:center;font-size:12px;line-height:16px;color:var(--text-2)}
+.check svg{flex:none}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:var(--bg);border-radius:8px;padding:8px 12px}
+.stat b{display:block;font-size:20px;line-height:28px;font-weight:600}
+
+/* goal cards */
+.goal{border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;background:#fff;transition:background .2s,border-color .2s}
+.goal.warn{background:var(--o50);border-color:var(--o100)}
+.goal.flash{animation:flash 1.2s ease}
+@keyframes flash{0%{background:var(--teal50);border-color:#9fd8c6}100%{background:#fff}}
+.goal .r1{display:flex;align-items:center;gap:8px}
+.goal .r1 .t{flex:1;font-weight:500}
+.goal .r2{display:flex;align-items:center;gap:8px;padding-left:28px;font-size:12px;line-height:16px}
+.goal .al{color:var(--blue-800);font-weight:500;display:flex;gap:6px;align-items:center}
+.goal .why{color:var(--meta)}
+.goal button.open{border:0;background:transparent;padding:4px;border-radius:4px;color:#333}
+
+/* diff */
+.diff{display:flex;flex-direction:column;gap:8px}
+.drow{display:grid;grid-template-columns:150px 1fr 16px 1fr;gap:8px;align-items:stretch}
+.drow .f{font-size:12px;color:var(--meta);font-weight:500;align-self:center}
+.drow .b{background:var(--m50);border-radius:8px;padding:8px 12px;color:var(--meta);text-decoration:line-through}
+.drow .a{background:var(--teal50);border-radius:8px;padding:8px 12px;font-weight:500}
+.drow .arr{align-self:center;color:var(--meta)}
+
+/* KR table */
+.krt{display:flex;flex-direction:column;gap:6px}
+.krh,.kr{display:grid;grid-template-columns:1fr 170px 130px;gap:12px;padding:0 12px}
+.krh{font-size:12px;color:var(--meta);font-weight:500}
+.kr{background:var(--bg);border-radius:8px;padding:8px 12px}
+.kr.chg{background:var(--teal50)}
+.kr .k{display:flex;gap:8px}
+.kr .k .tt{font-weight:500;display:flex;gap:6px;align-items:center}
+.kr .dd{font-size:12px;line-height:16px;color:var(--meta)}
+.kr .rg{font-weight:500}
+.kr .was{font-size:12px;color:var(--meta);text-decoration:line-through}
+.kr .src{font-size:12px;color:var(--text-2)}
+
+/* notes, quotes, options */
+.anote{background:var(--p50);border:1px solid var(--p100);border-radius:8px;padding:12px;display:flex;gap:8px;color:var(--text-2)}
+.anote svg{flex:none;color:#6a4be0;margin-top:1px}
+.quote{background:var(--bg);border-left:3px solid var(--border-2);border-radius:8px;padding:12px 16px;color:var(--text-2)}
+.quote .who{font-size:12px;color:var(--meta);font-weight:500;display:flex;justify-content:space-between}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid var(--border);border-radius:8px;background:#fff;text-align:left;width:100%}
+.opt.on{border-color:var(--blue);background:var(--p50)}
+.opt .rd{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--disabled);flex:none;margin-top:1px;display:grid;place-items:center}
+.opt.on .rd{border:2px solid var(--blue)}
+.opt.on .rd:after{content:"";width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.opt .tt{font-weight:500;display:flex;gap:6px;align-items:center}
+.opt .dd{font-size:12px;color:var(--meta)}
+.act{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.act:last-child{border-bottom:0}
+.act input{width:16px;height:16px;margin:2px 0 0;accent-color:var(--text);flex:none}
+.act .tt{font-weight:500}
+.act.off .tt{color:var(--meta)}
+.act .dd{font-size:12px;color:var(--meta)}
+.cr{display:flex;gap:12px;align-items:flex-start}
+.cr .dot{width:20px;height:20px;border-radius:50%;background:var(--m50);display:grid;place-items:center;flex:none}
+.cr .dot i{width:8px;height:1.8px;background:var(--red);border-radius:1px}
+.dec{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:8px 12px}
+.dec .t{flex:1;font-weight:500}
+.chgbox{background:var(--teal50);border-radius:8px;padding:8px 12px}
+.chgbox .old{font-size:12px;color:var(--meta);text-decoration:line-through}
+.chgbox .new{font-weight:500}
+
+/* toast + notification */
+.toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#26262b;color:#fff;border-radius:8px;padding:10px 16px;font-size:13px;opacity:0;transition:all .25s;z-index:50;display:flex;gap:8px;align-items:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.notif{position:absolute;right:24px;bottom:24px;width:380px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:slidein .35s ease;z-index:40}
+@keyframes slidein{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.notif .src{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--meta);font-weight:500}
+.notif .ttl{font-size:16px;line-height:24px;font-weight:600}
+.notif .row{display:flex;justify-content:flex-end;gap:8px}
+</style>
+</head>
+<body>
+
+<div class="proto" role="toolbar" aria-label="Prototype controls">
+  <strong>Klaar agentic goals</strong>
+  <button class="pbtn" id="prev" aria-label="Previous screen">‹ Prev</button>
+  <select id="jump" aria-label="Jump to screen"></select>
+  <button class="pbtn" id="next" aria-label="Next screen">Next ›</button>
+  <div class="seg" role="group" aria-label="Viewing as">
+    <button id="asD" class="on">Darlene</button><button id="asA">Arjun (manager)</button>
+  </div>
+  <span class="spacer"></span>
+  <span class="cap" id="cap"></span>
+  <button class="pbtn" id="restart">Restart</button>
+</div>
+
+<div class="stage"><div class="app" id="app">
+  <nav class="nav" aria-label="Klaar">
+    <div class="logo"><i>k</i>klaar</div>
+    <button class="qa">⚡ Quick Actions</button>
+    <div class="navi" id="nHome"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 7l6-5 6 5v7H2z"/></svg>Home</div>
+    <div class="navi" id="nGoals"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/></svg>Goals</div>
+    <div class="navi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8h6"/></svg>Reviews</div>
+    <div class="navi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 3h9v6H5l-3 3z"/></svg>1-1</div>
+    <div class="navi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 3h4v4H3zM9 9h4v4H9z"/></svg>Calibrate</div>
+    <div class="navi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="9" rx="2"/></svg>Feedback</div>
+    <div class="navi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13l4-4 2 2 4-6"/></svg>Development Plans</div>
+    <div class="navi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/></svg>Engage</div>
+    <div class="navi"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 14V2M2 14h12M5 10l3-3 2 2 4-4"/></svg>Analytics</div>
+    <div class="me" id="me"><span style="width:22px;height:22px;border-radius:50%;background:#c9b48f;display:inline-block"></span><span id="meName">Darlene Rob</span></div>
+  </nav>
+  <main class="main">
+    <div class="hero">
+      <h1 id="welcome">Welcome! Darlene Robertson&nbsp; • &nbsp;Tuesday April 14, 2026</h1>
+      <div class="search"><span id="hey">Hey Darlene!, Welcome to Klaar…I am here to help you</span><button class="askbtn" data-go="ask">✦ Ask Klaar</button></div>
+    </div>
+    <div class="content">
+      <div>
+        <div class="panelbox">
+          <h3>◷ Pending Task (10)</h3>
+          <div class="tasks">
+            <div class="task t1">Finalize goals for Non-Tech Mid Year Jun'26 - Jul'26 Performance Review<a href="#">Finalize Goals ›</a></div>
+            <div class="task t2">Share feedback for Direct Reports - Non-Tech Mid Year Jun'26 - Jul'26 Performance Review<a href="#">Complete Review ›</a></div>
+            <div class="task t3">Anil Bauri's PIP has reached its completion date and is pending for your review<a href="#">Review ›</a></div>
+          </div>
+        </div>
+        <div class="panelbox recog">
+          <h3>Recognition Board</h3>
+          <div class="post">Write a recognition post</div>
+          <div class="img"></div>
+        </div>
+      </div>
+      <div class="panelbox prof">
+        <div style="display:flex;gap:12px;align-items:center"><div class="av"></div><div><div id="pName" style="font-size:18px;font-weight:600">Darlene Robertson</div><div class="label" id="pRole">Senior Product Manager</div></div></div>
+        <a href="#" style="color:var(--blue);font-size:13px;text-decoration:none">View Profile ›</a>
+      </div>
+    </div>
+    <div class="scrim" id="scrim"></div>
+    <section class="ak panel hidden" id="ak" aria-label="Ask Klaar"></section>
+    <div id="notifSlot"></div>
+    <div class="toast" id="toast" role="status"></div>
+  </main>
+</div></div>
+
+<script>
+/* ---------- icons ---------- */
+const I = {
+  sparkle:(s=18)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" opacity=".7"/></svg>`,
+  okr:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#555" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r=".9" fill="#555"/></svg>`,
+  flag:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#555" stroke-width="1.4" aria-hidden="true"><path d="M3 14V2.5M3 3h8l-1.5 3L11 9H3"/></svg>`,
+  person:`<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#666" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="5.5" r="2.8"/><path d="M2.5 14c.8-3 3-4.3 5.5-4.3s4.7 1.3 5.5 4.3"/></svg>`,
+  chev:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#333" stroke-width="1.6" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg>`,
+  done:`<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#266F2A"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  active:`<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#E7E7E7" stroke-width="2" fill="none"/><path class="spin" d="M10 2a8 8 0 0 1 8 8" stroke="#3956F9" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  pending:`<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#BDBDBD" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/></svg>`,
+  failed:`<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#C91820"/><path d="M7 7l6 6M13 7l-6 6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  needs:`<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#E07B00"/><rect x="7" y="6" width="2" height="8" rx="1" fill="#fff"/><rect x="11" y="6" width="2" height="8" rx="1" fill="#fff"/></svg>`,
+  pass:`<svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#266F2A"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  warn:`<svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#E07B00"/><path d="M10 5.5V11" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="14.2" r="1.2" fill="#fff"/></svg>`,
+  close:`<svg width="20" height="20" viewBox="0 0 20 20" stroke="#333" stroke-width="1.8" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>`,
+  expand:`<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#444" stroke-width="1.6" aria-hidden="true"><path d="M4 8V4h4M16 12v4h-4M12 4h4v4M8 16H4v-4"/></svg>`,
+  collapse:`<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#444" stroke-width="1.6" aria-hidden="true"><path d="M8 4v4H4M12 16v-4h4M16 8h-4V4M4 12h4v4"/></svg>`,
+  history:`<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#444" stroke-width="1.6" aria-hidden="true"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7M3 3v3.5h3.5M10 6.5V10l2.5 1.5"/></svg>`,
+  plus:`<svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>`
+};
+const esc = s => s;
+const step = (k,t,d) => `<div class="step ${k}">${I[k.split(' ')[0]]}<div><div class="tt">${t}</div>${d?`<div class="dd">${d}</div>`:''}</div></div>`;
+const check = (k,t) => `<div class="check">${I[k]}<span>${t}</span></div>`;
+const chip = (t,k='') => `<span class="chip ${k}">${t}</span>`;
+const btn = (k,t,go,extra='') => `<button class="btn ${k}" ${go?`data-go="${go}"`:''} ${extra}>${t}</button>`;
+const user = t => `<div class="urow"><div class="ubub">${t}</div></div>`;
+const agent = t => `<div class="amsg">${I.sparkle(18)}<div>${t}</div></div>`;
+const stamp = t => `<div class="stamp">${t}</div>`;
+const actions = (note, btns) => `<div class="actions">${note?`<div class="note">${note}</div>`:'<div class="note"></div>'}${btns.join('')}</div>`;
+const actStack = (note, btns) => `<div class="actions stack">${note?`<div class="note">${note}</div>`:''}<div class="row">${btns.join('')}</div></div>`;
+const goal = (t,w,k,al,why,cls='') => `<div class="goal ${cls}"><div class="r1">${I.okr}<div class="t">${t}</div>${chip(w)}${chip(k)}<button class="open" aria-label="Open goal" data-go="s9">${I.chev}</button></div><div class="r2"><span class="al">${I.person}${al}</span><span class="why">${why}</span></div></div>`;
+const kr = (t,why,rg,src,o={}) => `<div class="kr ${o.chg?'chg':''}"><div class="k">${I.flag}<div><div class="tt">${t}${o.isNew?chip('New','done'):''}</div><div class="dd">${why}</div></div></div><div><div class="rg">${rg}</div>${o.was?`<div class="was">${o.was}</div>`:''}</div><div class="src">${src}</div></div>`;
+
+/* ---------- state ---------- */
+const st = { approvals:{a1:true,a2:true,a3:true,a4:true,a5:false}, option:0 };
+
+/* ---------- screens ---------- */
+const S = [
+ {id:'s7', n:7, name:'Proactive nudge', who:'D', mode:'panel', html:()=>`
+   ${stamp('Today, 9:02 AM')}
+   ${agent('Good morning, Darlene. Annual 2026 goal-setting opened today and is due Apr 30. Arjun has already published his objectives.')}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Want me to draft your goals?</div>${chip('Suggested','info')}</div>
+     <div><div class="label" style="margin-bottom:6px">Arjun's Annual 2026 objectives</div><div class="chips">${chip('Speed up onboarding')}${chip('Expand self-serve revenue')}${chip('Platform stickiness')}</div></div>
+     <div class="steps"><div class="label">What you'll get</div>
+       ${step('pending',"3–4 goals that support Arjun's objectives")}
+       ${step('pending','Key results with baselines from your 2025 check-ins')}
+       ${step('pending','Weights that add up to 100%, checked against team goals')}</div>
+     ${actStack('About 2 minutes. Nothing is added without your approval.',[btn('ter',"I'll do it myself",'close'),btn('sec','Remind me Monday','remind'),btn('pri','Draft my goals','s2')])}
+   </div></div>`},
+ {id:'s1', n:1, name:'Kickoff: agent proposes a plan', who:'D', mode:'panel', html:()=>`
+   ${user('Set up my goals for Annual 2026')}
+   ${agent("On it, Darlene. Here's my plan for your Annual 2026 goals. I'll do the legwork and check with you once before anything is added.")}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Plan for your Annual 2026 goals</div>${chip('6 steps, about 2 min')}</div>
+     <div class="steps">
+       ${step('pending','Read your profile & role expectations','Senior Product Manager, Growth BU')}
+       ${step('pending',"Pull Arjun Mehta's Annual 2026 objectives",'So every goal ladders up to your manager')}
+       ${step('pending','Review your 2025 OKRs and check-ins',"Carry over what slipped, retire what's done")}
+       ${step('pending','Draft 3–4 goals with key results and weights')}
+       ${step('pending','Check weights, alignment and overlap with team goals')}
+       ${step('pending','Ask for your approval before adding anything')}</div>
+     <div style="height:1px;background:var(--border)"></div>
+     <div class="chips"><span class="label">Using:</span>${chip('Your profile')}${chip("Arjun's OKRs")}${chip('2025 OKRs')}${chip('Growth team goals')}</div>
+     ${actions('Nothing is added without your approval',[btn('sec','Edit plan','toast:Plan editing opens here'),btn('pri','Start','s2')])}
+   </div></div>`},
+ {id:'s2', n:2, name:'Working: agent gathers context', who:'D', mode:'panel', html:()=>`
+   ${user('Set up my goals for Annual 2026')}
+   ${agent("Working on it. Feel free to keep using Klaar; I'll notify you when your draft is ready.")}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Setting up Annual 2026 goals</div><span class="chip info" id="stepCount">Step 1 of 6</span></div>
+     <div class="bar"><i id="prog" style="width:5%"></i></div>
+     <div class="steps" id="work"></div>
+     ${actions("You can close this panel. I'll keep going in the background.",[btn('dng','Stop','close'),btn('sec','Run in background','bg')])}
+   </div></div>`, after: runWork},
+ {id:'s8', n:8, name:'Draft ready notification', who:'D', mode:'home', notif:true},
+ {id:'s3', n:3, name:'Draft goal set: review in one place', who:'D', mode:'modal', html:()=>`
+   ${agent("Your draft is ready. I wrote 3 goals that ladder up to Arjun's objectives. Nothing has been added yet, so review them here or tell me what to change.")}
+   <div class="out">
+     <div class="card">
+       <div class="stats"><div class="stat"><span class="label">Goals</span><b>3</b></div><div class="stat"><span class="label">Key results</span><b>8</b></div><div class="stat"><span class="label">Total weight</span><b>100%</b></div><div class="stat"><span class="label">Aligned to Arjun</span><b>3 of 3</b></div></div>
+       <div class="checks">${check('pass','Weights add up to 100%')}${check('pass',"Each goal supports one of Arjun's objectives")}${check('warn',"Goal 2 overlaps Priya's Growth team goal")}</div>
+     </div>
+     <div style="display:flex;flex-direction:column;gap:8px">
+       ${goal('Cut mid-market time-to-value from 14 to 7 days','40%','3 KRs','Aligned to Arjun: Speed up onboarding','Why: carries over your 2025 activation goal (ended at 41% vs 55%)')}
+       ${goal('Grow self-serve PQLs to 1,200 per month','35%','3 KRs','Aligned to Arjun: Expand self-serve revenue','Why: PQL volume has been flat for two quarters','warn')}
+       ${goal('Lift Goals & Reviews adoption to 60% of active accounts','25%','2 KRs','Aligned to Arjun: Platform stickiness','Why: adoption is 38% today, the lowest of the core modules')}
+     </div>
+     ${actions('Open any goal to see its key results, or just tell me what to change.',[btn('ter','Review one by one','s9'),btn('sec','Fix the overlap','s4'),btn('pri','Approve all 3','s5')])}
+   </div>`},
+ {id:'s4', n:4, name:'Refine with chat: diff & auto-rebalance', who:'D', mode:'modal', html:()=>`
+   ${user("Goal 2 overlaps with Priya's team. Make it about trial-to-paid conversion and drop it to 25%.")}
+   ${agent('Done. I reframed Goal 2 around conversion and rebalanced the other weights so the total stays at 100%.')}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Changes to your draft</div>${chip('3 edits','info')}</div>
+     <div class="diff">
+       <div class="drow"><div class="f">Goal 2 title</div><div class="b">Grow self-serve PQLs to 1,200 per month</div><div class="arr">→</div><div class="a">Raise trial-to-paid conversion from 9% to 13%</div></div>
+       <div class="drow"><div class="f">Goal 2 key results</div><div class="b">PQL volume, activation emails, upgrade prompts</div><div class="arr">→</div><div class="a">Ship 3 in-app upgrade prompts, trial NPS ≥ 40, 13% conversion</div></div>
+       <div class="drow"><div class="f">Weights (G1 / G2 / G3)</div><div class="b">40% / 35% / 25%</div><div class="arr">→</div><div class="a">45% / 25% / 30%</div></div>
+     </div>
+     <div class="checks">${check('pass','No overlap with team goals')}${check('pass','Weights add up to 100%')}${check('pass','Alignment to Arjun unchanged')}</div>
+     ${actions('Want a different split? Just say "make it 40/30/30".',[btn('ter','Undo','s3'),btn('pri','Keep changes','s5')])}
+   </div></div>`},
+ {id:'s9', n:9, name:'Goal deep-dive: KRs with reasoning', who:'D', mode:'modal', html:()=>`
+   ${user('Review one by one')}
+   ${agent("Here's Goal 1 in detail. Each key result has a baseline from your data and a reason behind it. Tell me what to change, or approve it.")}
+   <div class="out"><div class="card">
+     <div class="ch">${I.okr}<div class="t lg">Cut mid-market time-to-value from 14 to 7 days</div>${chip('Weight 40%')}${chip('Goal 1 of 3','info')}</div>
+     <div class="goal" style="border:0;padding:0"><div class="r2"><span class="al">${I.person}Aligned to Arjun: Speed up onboarding</span><span class="why">Progress rolls up from key results</span></div></div>
+     <div class="krt"><div class="krh"><span>Key result</span><span>Baseline → target</span><span>Data source</span></div>
+       ${kr('Reduce median onboarding time for mid-market accounts','Your 2025 activation goal stalled here','14 → 7 days','2025 check-ins')}
+       ${kr('Raise guided-setup completion rate','Accounts that finish setup activate 2× faster','52% → 80%','Product analytics')}
+       ${kr('Cut onboarding-related support tickets','Top ticket category for new mid-market accounts','320 → 190 / quarter','Service desk')}</div>
+     <div class="anote">${I.sparkle(18)}<span>KR 1 is ambitious. Your best quarter in 2025 cut 3 days. I suggest 9 days, or keep 7 days as a stretch target.</span></div>
+     ${actions('Approve this goal to move on to Goal 2.',[btn('ter','Skip','toast:Skipped to Goal 2'),btn('sec','Use 9 days','s10'),btn('pri','Approve & next','toast:Goal 1 approved. Showing Goal 2')])}
+   </div></div>`},
+ {id:'s10', n:10, name:'Edit one KR with chat', who:'D', mode:'modal', html:()=>`
+   ${user('Make KR 1 a stretch target of 9 days, and add a KR for time to first value.')}
+   ${agent('Updated Goal 1. KR 1 now targets 9 days and I added a fourth key result. The weight and alignment are unchanged.')}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Goal 1: Cut mid-market time-to-value</div>${chip('2 edits','info')}</div>
+     <div class="krt"><div class="krh"><span>Key result</span><span>Baseline → target</span><span>Data source</span></div>
+       ${kr('Reduce median onboarding time for mid-market accounts','Stretch target agreed with you','14 → 9 days','2025 check-ins',{chg:1,was:'was 14 → 7 days'})}
+       ${kr('Raise guided-setup completion rate','Accounts that finish setup activate 2× faster','52% → 80%','Product analytics')}
+       ${kr('Cut onboarding-related support tickets','Top ticket category for new mid-market accounts','320 → 190 / quarter','Service desk')}
+       ${kr('Get 70% of new accounts to first value within 24 hours','Added at your request','41% → 70%','Product analytics',{chg:1,isNew:1})}</div>
+     <div class="checks">${check('pass','4 key results, within the 3–5 guideline')}${check('pass','Every key result has a baseline')}</div>
+     ${actions('Changes are highlighted.',[btn('ter','Undo','s9'),btn('pri','Keep & next goal','s5')])}
+   </div></div>`},
+ {id:'s5', n:5, name:'Approval checkpoint: one consent for all actions', who:'D', mode:'modal', html:()=>{
+   const A=[['a1','Add 3 goals and 8 key results to Annual 2026','My OKRs, weights 45% / 25% / 30%'],['a2',"Align each goal to Arjun's objectives",'Speed up onboarding, Expand self-serve revenue, Platform stickiness'],['a3','Send the goal set to Arjun Mehta for approval','Includes the note below'],['a4','Set bi-weekly check-in reminders','Every other Monday, 10:00 AM'],['a5','Post a summary in #growth-team','Off by default']];
+   const n=Object.values(st.approvals).filter(Boolean).length;
+   return `${agent("Here's exactly what I'll do once you approve. Untick anything you'd rather do yourself.")}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t" id="actTitle">${n} actions ready to run</div>${chip('Needs your approval','warn')}</div>
+     <div>${A.map(([k,t,d])=>`<label class="act ${st.approvals[k]?'':'off'}"><input type="checkbox" data-act="${k}" ${st.approvals[k]?'checked':''}><div><div class="tt">${t}</div><div class="dd">${d}</div></div></label>`).join('')}</div>
+     <div class="quote"><div class="who"><span>Note to Arjun</span><button class="btn ter sm" data-go="toast:Note editing opens here">Edit note</button></div>Hi Arjun, my Annual 2026 goals are ready for your review. They ladder up to Speed up onboarding, Expand self-serve revenue and Platform stickiness. Happy to walk through them in our next 1:1.</div>
+     ${actions('You can undo any of these for 24 hours.',[btn('sec','Back to draft','s3'),`<button class="btn pri" data-go="s6" id="runBtn" ${n?'':'disabled'}>Approve & run ${n} action${n===1?'':'s'}</button>`])}
+   </div></div>`}},
+ {id:'s6', n:6, name:'Done: activity log with undo', who:'D', mode:'panel', html:()=>`
+   ${user('Approve & run 4 actions')}
+   ${agent('All done. Your Annual 2026 goals are live, and Arjun has been asked to review them.')}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Activity, just now</div>${chip('Completed','done')}</div>
+     <div class="steps">
+       ${step('done enter','Added 3 goals and 8 key results to My OKRs','Annual 2026, weights 45% / 25% / 30%')}
+       ${step('done enter',"Aligned each goal to Arjun's objectives",'3 of 3 goals aligned')}
+       ${step('done enter','Sent your goal set to Arjun Mehta for approval','Includes a short summary note')}
+       ${step('done enter','Scheduled bi-weekly check-in reminders','Every other Monday, 10:00 AM')}</div>
+     ${actions('You can undo any action for 24 hours',[btn('ter','Undo all','s16'),btn('pri','View in My OKRs','toast:Opening My OKRs')])}
+   </div>
+   <div><div class="label" style="margin-bottom:8px">Want me to do anything else?</div><div class="chips">${btn('sec sm','Draft my first check-in','toast:Drafting your first check-in')}${btn('sec sm','Tell me when Arjun responds','s11')}${btn('sec sm','Share with Growth team','toast:Shared with #growth-team')}</div></div>
+   </div>`},
+ {id:'s11', n:11, name:'Manager: agent summary for Arjun', who:'A', mode:'modal', html:()=>`
+   ${agent("Darlene submitted her Annual 2026 goals for your approval. Here's my read before you decide.")}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Darlene Robertson: 3 goals, 9 key results</div>${chip('Awaiting your approval','warn')}</div>
+     <div class="checks">${check('pass','Covers all 3 of your objectives')}${check('pass','Weights add up to 100%')}${check('warn',"Goal 3's target is above your team's best 2025 result")}</div>
+     <div style="display:flex;flex-direction:column;gap:8px">
+       ${goal('Cut mid-market time-to-value from 14 to 9 days','45%','4 KRs','Supports Speed up onboarding',"Realistic: matches the team's best quarter")}
+       ${goal('Raise trial-to-paid conversion from 9% to 13%','25%','3 KRs','Supports Expand self-serve revenue',"Darlene resolved an overlap with Priya's team")}
+       ${goal('Lift Goals & Reviews adoption to 60% of active accounts','30%','2 KRs','Supports Platform stickiness','Risk: 38% → 60% is a big jump; the best in 2025 was +12 pts','warn')}
+     </div>
+     ${actions('Decide here, or just tell me in chat.',[btn('ter','Comment','toast:Comment box opens here'),btn('sec','Request changes','s12'),btn('pri','Approve all','toast:All 3 goals approved. Darlene has been notified')])}
+   </div></div>`},
+ {id:'s12', n:12, name:'Manager: request change in plain language', who:'A', mode:'modal', html:()=>`
+   ${user('Approve 1 and 2. For goal 3, aim for 50% and add a KR on manager adoption.')}
+   ${agent("Here's what I'll send. Goals 1 and 2 get approved now, and Goal 3 goes back to Darlene with your request.")}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Ready to send to Darlene</div>${chip('2 approvals, 1 change','info')}</div>
+     <div style="display:flex;flex-direction:column;gap:6px">
+       <div class="dec">${I.okr}<span class="t">Goal 1: Cut mid-market time-to-value from 14 to 9 days</span>${chip('Approve','done')}</div>
+       <div class="dec">${I.okr}<span class="t">Goal 2: Raise trial-to-paid conversion from 9% to 13%</span>${chip('Approve','done')}</div>
+       <div class="dec">${I.okr}<span class="t">Goal 3: Lift Goals & Reviews adoption: target 50%, add a manager KR</span>${chip('Change requested','warn')}</div>
+     </div>
+     <div class="quote"><div class="who"><span>Message to Darlene, drafted from your words</span></div>Great set, Darlene. Approving goals 1 and 2. For goal 3, let's aim for 50% adoption and add a key result on managers completing reviews in Klaar.</div>
+     ${actions("Darlene's agent will draft the update for her.",[btn('sec','Edit message','toast:Message editing opens here'),btn('pri','Send','s13')])}
+   </div></div>`},
+ {id:'s13', n:13, name:'Employee: agent applies manager feedback', who:'D', mode:'panel', html:()=>`
+   ${stamp('Today, 4:15 PM')}
+   ${agent("Arjun approved Goals 1 and 2 and asked for a change on Goal 3. I've drafted the update for you.")}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Goal 3: Lift Goals & Reviews adoption</div>${chip('1 change','info')}</div>
+     <div class="quote"><div class="who"><span>Arjun Mehta</span></div>Let's aim for 50% adoption and add a key result on managers completing reviews in Klaar.</div>
+     <div class="chgbox"><div class="label">Target</div><div class="old">38% → 60% of active accounts</div><div class="new">38% → 50% of active accounts</div></div>
+     <div class="chgbox"><div class="label" style="display:flex;justify-content:space-between">Key result ${chip('New','done')}</div><div class="new">80% of managers complete reviews in Klaar (baseline 46%)</div></div>
+     ${check('pass','Weights unchanged (45% / 25% / 30%)')}
+     ${actStack('Goals 1 and 2 are already approved and locked.',[btn('ter','Edit','toast:Goal 3 editing opens here'),btn('pri','Apply & resubmit','toast:Goal 3 updated and resubmitted to Arjun')])}
+   </div></div>`},
+ {id:'s14', n:14, name:'Edge: agent asks a clarifying question', who:'D', mode:'panel', html:()=>{
+   const O=[["Use the Product org objectives",'Published by Meera Iyer (CPO) on Apr 2','Recommended'],["Start from Arjun's 2025 objectives","I'll flag any that may have changed"],['Wait for Arjun',"I'll nudge him today and remind you when he publishes"]];
+   return `${user('Set up my goals for Annual 2026')}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Setting up Annual 2026 goals</div>${chip('Paused','warn')}</div>
+     <div class="steps">${step('done','Read your profile & role expectations','Senior PM, Growth BU')}${step('needs',"Arjun hasn't published Annual 2026 objectives yet",'I need something to align your goals to')}${step('pending','Draft goals and key results')}</div>
+   </div></div>
+   ${agent("How should I continue? Pick one and I'll pick up where I left off.")}
+   <div class="out" role="radiogroup" aria-label="How to continue" style="gap:8px">
+     ${O.map((o,i)=>`<button class="opt ${st.option===i?'on':''}" role="radio" aria-checked="${st.option===i}" data-opt="${i}"><span class="rd"></span><span><span class="tt">${o[0]}${o[2]?chip(o[2]):''}</span><span class="dd">${o[1]}</span></span></button>`).join('')}
+     <div style="display:flex;justify-content:flex-end;gap:8px">${btn('ter','Stop','close')}${btn('pri','Continue','s2')}</div>
+   </div>`}},
+ {id:'s15', n:15, name:'Edge: failed action with recovery', who:'D', mode:'panel', html:()=>`
+   ${user('Approve & run 4 actions')}
+   ${agent("3 of 4 actions are done, but I couldn't send your goals to Arjun.")}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Activity, just now</div>${chip('1 failed','risk')}</div>
+     <div class="steps">
+       ${step('done','Added 3 goals and 8 key results to My OKRs','Annual 2026, weights 45% / 25% / 30%')}
+       ${step('done',"Aligned each goal to Arjun's objectives",'3 of 3 goals aligned')}
+       ${step('failed',"Couldn't send for approval",'Arjun is on leave until Apr 22, and his approvals are paused')}
+       ${step('done','Scheduled bi-weekly check-in reminders','Every other Monday, 10:00 AM')}</div>
+     <div class="anote">${I.sparkle(18)}<span>Arjun named Neha Kapoor as his delegate while he's away. I can send it to her, or hold it until he's back.</span></div>
+     ${actStack(null,[btn('ter','Retry','toast:Retrying… still paused until Apr 22'),btn('sec','Hold until Apr 22','toast:Held. I’ll send it on Apr 22'),btn('pri','Send to Neha','s6')])}
+   </div></div>`},
+ {id:'s16', n:16, name:'Edge: undo confirmation', who:'D', mode:'panel', html:()=>`
+   ${user('Undo all')}
+   ${agent("Before I undo, here's what will change. Arjun has already seen your goals, so he'll be told they were withdrawn.")}
+   <div class="out"><div class="card">
+     <div class="ch"><div class="t">Undo 4 actions?</div>${chip('23 h left to undo','warn')}</div>
+     <div class="steps">
+       ${[['Remove 3 goals and 8 key results','From My OKRs, Annual 2026'],["Unlink them from Arjun's objectives",'Alignment is removed too'],['Withdraw the approval request','Arjun gets a notification'],['Cancel check-in reminders','No more bi-weekly nudges']].map(([t,d])=>`<div class="cr"><span class="dot"><i></i></span><div><div style="font-weight:500">${t}</div><div class="label">${d}</div></div></div>`).join('')}</div>
+     ${check('warn','Your check-in on Goal 1 from today stays in your history')}
+     ${actStack('You can also undo just some of these.',[btn('ter','Choose actions','s5'),btn('sec','Keep everything','s6'),btn('dngp','Undo 4 actions','undone')])}
+   </div></div>`},
+];
+const ORDER = S.map(s=>s.id);
+const byId = id => S.find(s=>s.id===id);
+
+/* ---------- rendering ---------- */
+let cur = 's7', workTimer = null;
+const $ = id => document.getElementById(id);
+
+function setPersona(who){
+  const a = who==='A';
+  $('welcome').innerHTML = (a?'Welcome! Arjun Mehta':'Welcome! Darlene Robertson')+'&nbsp; • &nbsp;Tuesday April 14, 2026';
+  $('hey').textContent = a?'Hey Arjun!, Welcome to Klaar…I am here to help you':'Hey Darlene!, Welcome to Klaar…I am here to help you';
+  $('pName').textContent = a?'Arjun Mehta':'Darlene Robertson';
+  $('pRole').textContent = a?'VP Product':'Senior Product Manager';
+  $('meName').textContent = a?'Arjun Meh':'Darlene Rob';
+  $('asD').classList.toggle('on',!a); $('asA').classList.toggle('on',a);
+}
+
+function header(mode, who){
+  const ctx = mode==='modal' ? (who==='A'
+     ? `<div class="akctx">Reviewing goals for <b>Darlene Robertson</b> <span class="muted">(Senior Product Manager)</span>, Annual 2026</div>`
+     : `<div class="akctx">Defining goal for <b>Darlene Robertson</b> <span class="muted">(Senior Product Manager)</span> reports to <b>Arjun Mehta</b> <span class="muted">(VP Product)</span> <a href="#">View details</a></div>`) : '';
+  const icons = mode==='modal'
+    ? `<button class="ib" data-go="collapse" aria-label="Collapse to side panel">${I.collapse}</button>`
+    : `<button class="ib" aria-label="History">${I.history}</button><button class="ib" data-go="expand" aria-label="Expand">${I.expand}</button>`;
+  return `<div class="akhead"><div class="akttl">${I.sparkle(18)}Ask Klaar</div>${ctx}<div class="akicons">${icons}<span style="width:1px;height:24px;background:var(--border)"></span><button class="ib" data-go="close" aria-label="Close">${I.close}</button></div></div>`;
+}
+function sidebar(who){
+  const convs = who==='A'
+    ? [['Darlene · Annual 2026 goals','Today, 3:40 PM',1],['Team calibration prep','April 9, 11:20 AM'],['Q2 hiring plan','April 2, 5:10 PM']]
+    : [['Annual 2026 goals','Today, 9:04 AM',1],['Improve trial-to-paid…','April 10, 2:30 PM'],['Launch experiment fr…','April 10, 2:30 PM']];
+  return `<aside class="side"><button class="new">${I.plus} Add New Conversation</button><div class="lbl">Recent Conversations</div><div class="srch">⌕ Search conversation</div>${convs.map(c=>`<div class="conv ${c[2]?'on':''}">${c[0]}<small>${c[1]}</small></div>`).join('')}<div class="del">🗑 Delete all conversations</div></aside>`;
+}
+
+function render(id, opts={}){
+  clearInterval(workTimer); workTimer=null;
+  cur = id; const s = byId(id);
+  setPersona(s.who);
+  $('jump').value = id;
+  $('cap').textContent = `Screen ${s.n}: ${s.name}`;
+  $('notifSlot').innerHTML = '';
+  const ak = $('ak');
+  const mode = opts.mode || s.mode;
+  if (mode==='home'){
+    ak.className='ak panel hidden'; $('scrim').classList.remove('on');
+    if (s.notif) $('notifSlot').innerHTML = `<div class="notif" role="alert"><div class="src">${I.sparkle(16)} Ask Klaar, just now</div><div class="ttl">Your Annual 2026 draft is ready</div><div style="color:var(--text-2)">3 goals and 8 key results, aligned to all 3 of Arjun's objectives</div>${check('warn','1 thing needs your attention: Goal 2 overlaps a team goal')}<div class="row">${btn('ter','Later','dismiss')}${btn('pri','Review draft','s3')}</div></div>`;
+    return;
+  }
+  ak.className = 'ak '+mode;
+  $('scrim').classList.toggle('on', mode==='modal');
+  const body = mode==='modal' ? `${sidebar(s.who)}<div class="chatcol"><div class="chat" id="chat">${s.html()}</div>${composer()}</div>` : `<div class="chatcol"><div class="chat" id="chat">${s.html()}</div>${composer()}</div>`;
+  ak.innerHTML = header(mode, s.who) + `<div class="akbody">${body}</div>`;
+  const chat = $('chat'); chat.scrollTop = chat.scrollHeight;
+  if (s.after) s.after();
+}
+function composer(){ return `<form class="composer" id="comp"><span style="color:var(--blue)">${I.plus}</span><input id="ci" placeholder="Tell Klaar what to change, or ask for anything" aria-label="Message Klaar"><button class="gen" type="submit">${I.sparkle(16)} Generate</button></form>`; }
+
+function runWork(){
+  const W=[['Read your profile & role expectations','Senior PM, Growth BU, 3 role competencies'],['Pulled 3 objectives from Arjun Mehta','Speed up onboarding, Expand self-serve revenue, Platform stickiness'],['Reviewed your 4 goals from 2025',"Activation ended at 41% vs a 55% target, so I'm carrying it over"],['Drafting goals and key results','Writing KRs for "Cut mid-market time-to-value"'],['Check weights, alignment and overlap','Found 1 overlap with a Growth team goal'],['Ask for your approval','Draft ready']];
+  let i=0;
+  const draw=()=>{
+    const el=$('work'); if(!el) return;
+    el.innerHTML = W.map((w,j)=> j<i ? step('done',w[0],w[1]) : j===i ? step('active',w[0]+'…',w[1]) : step('pending',w[0])).join('');
+    $('prog').style.width = Math.min(100,Math.round((i/W.length)*100)+5)+'%';
+    $('stepCount').textContent = i<W.length ? `Step ${i+1} of ${W.length}` : 'Done';
+  };
+  draw();
+  workTimer = setInterval(()=>{ i++; draw(); if(i>=W.length){ clearInterval(workTimer); setTimeout(()=>{ if(cur==='s2') render('s8'); },900);} }, 1100);
+}
+
+/* ---------- interactions ---------- */
+let toastT;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2400); }
+
+document.addEventListener('click', e=>{
+  const opt = e.target.closest('[data-opt]');
+  if (opt){ st.option=+opt.dataset.opt; render('s14'); return; }
+  const el = e.target.closest('[data-go]'); if(!el) return;
+  e.preventDefault();
+  const g = el.dataset.go;
+  if (g.startsWith('toast:')) return toast(g.slice(6));
+  const s = byId(cur);
+  switch(g){
+    case 'close': render(cur,{mode:'home'}); return;
+    case 'ask': render(s.mode==='home'?'s7':cur); return;
+    case 'expand': render(cur,{mode:'modal'}); return;
+    case 'collapse': render(cur,{mode:'panel'}); return;
+    case 'remind': render(cur,{mode:'home'}); toast("OK, I'll remind you on Monday at 9 AM"); return;
+    case 'bg': render('s2',{mode:'home'}); toast("Running in the background. I'll let you know when it's ready"); setTimeout(()=>{ if(cur==='s2') render('s8'); }, 2500); return;
+    case 'dismiss': $('notifSlot').innerHTML=''; toast('Find your draft in Ask Klaar anytime'); return;
+    case 'undone': render('s7',{mode:'home'}); toast('Undone: 4 actions reversed and Arjun notified'); return;
+  }
+  render(g);
+});
+document.addEventListener('change', e=>{
+  const k = e.target.dataset && e.target.dataset.act; if(!k) return;
+  st.approvals[k]=e.target.checked;
+  const n=Object.values(st.approvals).filter(Boolean).length;
+  e.target.closest('.act').classList.toggle('off',!e.target.checked);
+  $('actTitle').textContent = `${n} action${n===1?'':'s'} ready to run`;
+  const b=$('runBtn'); b.disabled=!n; b.textContent=`Approve & run ${n} action${n===1?'':'s'}`;
+});
+document.addEventListener('submit', e=>{
+  if (e.target.id!=='comp') return; e.preventDefault();
+  const v = $('ci').value.trim();
+  const route = {s3:'s4', s9:'s10', s11:'s12', s7:'s1', s6:'s16'}[cur];
+  if (route) render(route); else toast(v?`Klaar is on it: "${v}"`:'Type a request for Klaar');
+});
+document.addEventListener('input', e=>{ if(e.target.id==='ci') e.target.form.querySelector('.gen').classList.toggle('ready', !!e.target.value.trim()); });
+
+/* navigator */
+const sel=$('jump'); S.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=`${s.n}. ${s.name}`; sel.appendChild(o); });
+sel.onchange=()=>render(sel.value);
+$('prev').onclick=()=>{ const i=ORDER.indexOf(cur); render(ORDER[(i-1+ORDER.length)%ORDER.length]); };
+$('next').onclick=()=>{ const i=ORDER.indexOf(cur); render(ORDER[(i+1)%ORDER.length]); };
+$('restart').onclick=()=>{ st.approvals={a1:true,a2:true,a3:true,a4:true,a5:false}; st.option=0; render('s7'); };
+$('asD').onclick=()=>render(byId(cur).who==='D'?cur:'s13');
+$('asA').onclick=()=>render(byId(cur).who==='A'?cur:'s11');
+document.addEventListener('keydown', e=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return; if(e.key==='ArrowRight') $('next').click(); if(e.key==='ArrowLeft') $('prev').click(); });
+
+/* fit to window */
+function fit(){ const app=$('app'); const w=window.innerWidth-32, h=window.innerHeight-48-32; const k=Math.min(1,w/1280,h/720); app.style.transform=`scale(${k})`; app.style.margin = `${(720*k-720)/2}px ${(1280*k-1280)/2}px`; }
+window.addEventListener('resize',fit); fit();
+render('s7');
+</script>
+</body>
+</html>
